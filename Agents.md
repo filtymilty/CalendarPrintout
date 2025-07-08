@@ -124,22 +124,3 @@ Eventually we’ll swap out the localStorage code for a file system-based approa
 This doc is evolving alongside the app. If you (as an AI agent) figure out better ways to structure recurrence, simplify the UI, or anything else — suggest it to the user. Just keep things in line with the minimal and static-first nature of the app.
 
 Try to avoid complicating the code with frameworks or libraries unless it makes something significantly easier. Don’t reach for React or Vue. Think long-term maintainability and packaging.
-
----
-
-## Agent Instructions
-
-If you're an AI agent working on this project:
-
-**Every time you change the code, add a short log below.**  
-Just a few lines: summary of what changed and which files were involved.
-
-### Log Format
-
-- Date (YYYY-MM-DD)
-- Summary of what changed
-- Files affected
-
----
-
-## Logs (Start logging here)
