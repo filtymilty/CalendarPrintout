@@ -198,6 +198,13 @@ function renderInputsView(calendarId) {
     });
     container.appendChild(backBtn);
 
+    const viewCalBtn = document.createElement('button');
+    viewCalBtn.textContent = 'View Calendar';
+    viewCalBtn.addEventListener('click', () => {
+        renderCalendarView(calendar.id);
+    });
+    container.appendChild(viewCalBtn);
+
     const listsWrapper = document.createElement('div');
     container.appendChild(listsWrapper);
 
@@ -283,6 +290,133 @@ function renderInputsView(calendarId) {
 
         listsWrapper.appendChild(listDiv);
     });
+
+    app.innerHTML = '';
+    app.appendChild(container);
+}
+
+function renderCalendarView(calendarId, year, month) {
+    const app = document.getElementById('app');
+    const calendar = CalendarManager.getCalendar(calendarId);
+    if (!calendar) {
+        app.textContent = 'Calendar not found';
+        return;
+    }
+
+    const today = new Date();
+    year = year || today.getFullYear();
+    month = typeof month === 'number' ? month : today.getMonth();
+
+    const container = document.createElement('div');
+    const header = document.createElement('h2');
+    header.textContent = `${calendar.name} - Calendar`;
+    container.appendChild(header);
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = 'Back';
+    backBtn.addEventListener('click', () => {
+        renderInputsView(calendarId);
+    });
+    container.appendChild(backBtn);
+
+    const controls = document.createElement('div');
+    controls.className = 'calendar-controls';
+
+    const monthSelect = document.createElement('select');
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    monthNames.forEach((m, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = m;
+        if (idx === month) opt.selected = true;
+        monthSelect.appendChild(opt);
+    });
+    controls.appendChild(monthSelect);
+
+    const yearInput = document.createElement('input');
+    yearInput.type = 'number';
+    yearInput.value = year;
+    yearInput.style.width = '5rem';
+    controls.appendChild(yearInput);
+
+    const showBtn = document.createElement('button');
+    showBtn.textContent = 'Show';
+    showBtn.addEventListener('click', () => {
+        const y = parseInt(yearInput.value, 10);
+        const m = parseInt(monthSelect.value, 10);
+        renderCalendarView(calendarId, y, m);
+    });
+    controls.appendChild(showBtn);
+
+    const printBtn = document.createElement('button');
+    printBtn.textContent = 'Print';
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+    controls.appendChild(printBtn);
+
+    container.appendChild(controls);
+
+    const grid = document.createElement('div');
+    grid.className = 'calendar-grid';
+
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    dayNames.forEach(dn => {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+        cell.textContent = dn;
+        grid.appendChild(cell);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-cell';
+        grid.appendChild(empty);
+    }
+
+    const eventsByDate = {};
+    calendar.lists.forEach(list => {
+        list.items.forEach(item => {
+            const d = new Date(item.date);
+            if (d.getFullYear() === year && d.getMonth() === month) {
+                const day = d.getDate();
+                if (!eventsByDate[day]) eventsByDate[day] = [];
+                eventsByDate[day].push(item.title);
+            }
+        });
+    });
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+        const dow = date.getDay();
+        if (dow === 0 || dow === 6) cell.classList.add('weekend');
+        const num = document.createElement('div');
+        num.textContent = day;
+        cell.appendChild(num);
+        const events = eventsByDate[day] || [];
+        events.forEach(t => {
+            const eDiv = document.createElement('div');
+            eDiv.textContent = t;
+            cell.appendChild(eDiv);
+        });
+        grid.appendChild(cell);
+    }
+
+    const remaining = 7 - ((firstDay + daysInMonth) % 7);
+    if (remaining < 7) {
+        for (let i = 0; i < remaining; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-cell';
+            grid.appendChild(empty);
+        }
+    }
+
+    container.appendChild(grid);
 
     app.innerHTML = '';
     app.appendChild(container);

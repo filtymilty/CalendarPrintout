@@ -11,3 +11,26 @@ body {
 #content {
     padding: 1rem;
 }
+
+/* Calendar view */
+.calendar-controls {
+    margin-bottom: 1rem;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 1px solid #ccc;
+}
+
+.calendar-cell {
+    border: 1px solid #ccc;
+    min-height: 80px;
+    padding: 2px;
+    box-sizing: border-box;
+    font-size: 0.875rem;
+}
+
+.calendar-cell.weekend {
+    background: #f0f0f0;
+}
