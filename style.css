@@ -1,0 +1,13 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+#main-menu {
+    background: #f5f5f5;
+    padding: 1rem;
+}
+
+#content {
+    padding: 1rem;
+}
