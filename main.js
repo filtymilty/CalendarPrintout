@@ -134,24 +134,19 @@ const CalendarManager = (function(adapter) {
 })(StorageAdapter);
 
 // Basic UI rendering for now
-function renderCalendarList() {
-    const listEl = document.getElementById('calendar-list');
-    const menuEl = document.getElementById('main-menu');
+function showMainMenu() {
+    document.getElementById('main-menu').style.display = 'block';
+    document.getElementById('content').style.display = 'none';
+}
 
-    let addBtn = document.getElementById('add-calendar-btn');
-    if (!addBtn) {
-        addBtn = document.createElement('button');
-        addBtn.id = 'add-calendar-btn';
-        addBtn.textContent = 'Add Calendar';
-        addBtn.addEventListener('click', () => {
-            const name = prompt('Calendar name?');
-            if (name) {
-                CalendarManager.createCalendar(name);
-                renderCalendarList();
-            }
-        });
-        menuEl.insertBefore(addBtn, listEl);
-    }
+function showContent() {
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+}
+
+function renderCalendarList() {
+    showMainMenu();
+    const listEl = document.getElementById('calendar-list');
 
     const calendars = CalendarManager.getCalendars();
     if (calendars.length === 0) {
@@ -171,6 +166,40 @@ function renderCalendarList() {
 
 document.addEventListener('DOMContentLoaded', () => {
     CalendarManager.loadCalendars();
+
+    const newBtn = document.getElementById('new-calendar-btn');
+    newBtn.addEventListener('click', () => {
+        const name = prompt('Calendar name?');
+        if (name) {
+            CalendarManager.createCalendar(name);
+            renderCalendarList();
+        }
+    });
+
+    const uploadBtn = document.getElementById('upload-calendar-btn');
+    const uploadInput = document.getElementById('upload-calendar-input');
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+    uploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (data && data.name) {
+                    const cal = CalendarManager.createCalendar(data.name);
+                    cal.lists = data.lists || [];
+                    CalendarManager.saveCalendars();
+                    renderCalendarList();
+                }
+            } catch (err) {
+                alert('Failed to load calendar');
+            }
+        };
+        reader.readAsText(file);
+        uploadInput.value = '';
+    });
+
     renderCalendarList();
 });
 
@@ -184,26 +213,34 @@ function renderInputsView(calendarId) {
         app.textContent = 'Calendar not found';
         return;
     }
+    showContent();
 
     const container = document.createElement('div');
+    const topBar = document.createElement('div');
+    topBar.className = 'top-bar';
     const header = document.createElement('h2');
-    header.textContent = `${calendar.name} - Lists`;
-    container.appendChild(header);
+    header.textContent = calendar.name;
+    topBar.appendChild(header);
 
+    const actions = document.createElement('div');
+    actions.className = 'bar-actions';
     const backBtn = document.createElement('button');
     backBtn.textContent = 'Back';
     backBtn.addEventListener('click', () => {
         app.innerHTML = '';
         renderCalendarList();
     });
-    container.appendChild(backBtn);
+    actions.appendChild(backBtn);
 
     const viewCalBtn = document.createElement('button');
     viewCalBtn.textContent = 'View Calendar';
     viewCalBtn.addEventListener('click', () => {
         renderCalendarView(calendar.id);
     });
-    container.appendChild(viewCalBtn);
+    actions.appendChild(viewCalBtn);
+
+    topBar.appendChild(actions);
+    container.appendChild(topBar);
 
     const listsWrapper = document.createElement('div');
     container.appendChild(listsWrapper);
@@ -360,22 +397,37 @@ function renderCalendarView(calendarId, year, month) {
         app.textContent = 'Calendar not found';
         return;
     }
+    showContent();
 
     const today = new Date();
     year = year || today.getFullYear();
     month = typeof month === 'number' ? month : today.getMonth();
 
     const container = document.createElement('div');
+    const topBar = document.createElement('div');
+    topBar.className = 'top-bar';
     const header = document.createElement('h2');
-    header.textContent = `${calendar.name} - Calendar`;
-    container.appendChild(header);
+    header.textContent = calendar.name;
+    topBar.appendChild(header);
 
+    const actions = document.createElement('div');
+    actions.className = 'bar-actions';
     const backBtn = document.createElement('button');
     backBtn.textContent = 'Back';
     backBtn.addEventListener('click', () => {
         renderInputsView(calendarId);
     });
-    container.appendChild(backBtn);
+    actions.appendChild(backBtn);
+
+    const printBtn = document.createElement('button');
+    printBtn.textContent = 'Print';
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+    actions.appendChild(printBtn);
+
+    topBar.appendChild(actions);
+    container.appendChild(topBar);
 
     const controls = document.createElement('div');
     controls.className = 'calendar-controls';
@@ -405,13 +457,6 @@ function renderCalendarView(calendarId, year, month) {
         renderCalendarView(calendarId, y, m);
     });
     controls.appendChild(showBtn);
-
-    const printBtn = document.createElement('button');
-    printBtn.textContent = 'Print';
-    printBtn.addEventListener('click', () => {
-        window.print();
-    });
-    controls.appendChild(printBtn);
 
     container.appendChild(controls);
 
