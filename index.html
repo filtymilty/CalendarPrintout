@@ -8,11 +8,17 @@
 </head>
 <body>
     <main>
-        <section id="main-menu">
-            <h1>Calendars</h1>
+        <section id="main-menu" class="menu-screen">
+            <h1 id="app-title">Calendar Generator</h1>
+            <div class="menu-actions">
+                <button id="new-calendar-btn">New Calendar</button>
+                <button id="upload-calendar-btn">Upload Calendar</button>
+                <input type="file" id="upload-calendar-input" accept="application/json" style="display:none" />
+            </div>
+            <h2>Calendars</h2>
             <ul id="calendar-list"></ul>
         </section>
-        <section id="content">
+        <section id="content" style="display:none">
             <div id="app"></div>
         </section>
     </main>
