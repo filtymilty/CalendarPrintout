@@ -222,72 +222,130 @@ function renderInputsView(calendarId) {
     calendar.lists.forEach(list => {
         const listDiv = document.createElement('div');
         listDiv.className = 'list-block';
-        const title = document.createElement('h3');
-        title.textContent = `${list.name} (${list.type})`;
-        listDiv.appendChild(title);
 
-        const editListBtn = document.createElement('button');
-        editListBtn.textContent = 'Edit List';
-        editListBtn.addEventListener('click', () => {
-            const newName = prompt('List name', list.name);
-            if (!newName) return;
-            const newType = prompt('Type', list.type);
-            CalendarManager.updateList(calendar.id, list.id, { name: newName, type: newType || list.type });
-            renderInputsView(calendar.id);
-        });
-        listDiv.appendChild(editListBtn);
+        function renderListDisplay() {
+            listDiv.innerHTML = '';
+            const header = document.createElement('div');
 
-        const delListBtn = document.createElement('button');
-        delListBtn.textContent = 'Delete List';
-        delListBtn.addEventListener('click', () => {
-            if (confirm('Delete this list?')) {
-                CalendarManager.deleteList(calendar.id, list.id);
-                renderInputsView(calendar.id);
-            }
-        });
-        listDiv.appendChild(delListBtn);
+            const title = document.createElement('h3');
+            title.textContent = `${list.name} (${list.type})`;
+            header.appendChild(title);
 
-        const itemsUl = document.createElement('ul');
-        list.items.forEach(item => {
-            const itemLi = document.createElement('li');
-            itemLi.textContent = `${item.title} - ${item.date}`;
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', () => renderEditForm());
+            header.appendChild(editBtn);
 
-            const editItemBtn = document.createElement('button');
-            editItemBtn.textContent = 'Edit';
-            editItemBtn.addEventListener('click', () => {
-                const newTitle = prompt('Item title', item.title);
-                if (!newTitle) return;
-                const newDate = prompt('Date', item.date);
-                CalendarManager.updateItem(calendar.id, list.id, item.id, { title: newTitle, date: newDate });
-                renderInputsView(calendar.id);
-            });
-            itemLi.appendChild(editItemBtn);
-
-            const delItemBtn = document.createElement('button');
-            delItemBtn.textContent = 'Delete';
-            delItemBtn.addEventListener('click', () => {
-                if (confirm('Delete item?')) {
-                    CalendarManager.deleteItem(calendar.id, list.id, item.id);
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Delete';
+            delBtn.addEventListener('click', () => {
+                if (confirm('Delete this list?')) {
+                    CalendarManager.deleteList(calendar.id, list.id);
                     renderInputsView(calendar.id);
                 }
             });
-            itemLi.appendChild(delItemBtn);
+            header.appendChild(delBtn);
 
-            itemsUl.appendChild(itemLi);
-        });
-        listDiv.appendChild(itemsUl);
+            listDiv.appendChild(header);
 
-        const addItemBtn = document.createElement('button');
-        addItemBtn.textContent = 'Add Item';
-        addItemBtn.addEventListener('click', () => {
-            const title = prompt('Item title?');
-            if (!title) return;
-            const date = prompt('Date (YYYY-MM-DD)');
-            CalendarManager.addItem(calendar.id, list.id, { title, date });
-            renderInputsView(calendar.id);
-        });
-        listDiv.appendChild(addItemBtn);
+            const itemsUl = document.createElement('ul');
+            list.items.forEach(item => {
+                const itemLi = document.createElement('li');
 
+                function renderItemDisplay() {
+                    itemLi.innerHTML = '';
+                    const span = document.createElement('span');
+                    span.textContent = `${item.title} - ${item.date}`;
+                    itemLi.appendChild(span);
+
+                    const editItemBtn = document.createElement('button');
+                    editItemBtn.textContent = 'Edit';
+                    editItemBtn.addEventListener('click', () => renderItemEdit());
+                    itemLi.appendChild(editItemBtn);
+
+                    const delItemBtn = document.createElement('button');
+                    delItemBtn.textContent = 'Delete';
+                    delItemBtn.addEventListener('click', () => {
+                        if (confirm('Delete item?')) {
+                            CalendarManager.deleteItem(calendar.id, list.id, item.id);
+                            renderInputsView(calendar.id);
+                        }
+                    });
+                    itemLi.appendChild(delItemBtn);
+                }
+
+                function renderItemEdit() {
+                    itemLi.innerHTML = '';
+                    const titleInput = document.createElement('input');
+                    titleInput.value = item.title;
+                    itemLi.appendChild(titleInput);
+
+                    const dateInput = document.createElement('input');
+                    dateInput.value = item.date;
+                    itemLi.appendChild(dateInput);
+
+                    const saveBtn = document.createElement('button');
+                    saveBtn.textContent = 'Save';
+                    saveBtn.addEventListener('click', () => {
+                        CalendarManager.updateItem(calendar.id, list.id, item.id, {
+                            title: titleInput.value,
+                            date: dateInput.value
+                        });
+                        renderInputsView(calendar.id);
+                    });
+                    itemLi.appendChild(saveBtn);
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.textContent = 'Cancel';
+                    cancelBtn.addEventListener('click', renderItemDisplay);
+                    itemLi.appendChild(cancelBtn);
+                }
+
+                renderItemDisplay();
+                itemsUl.appendChild(itemLi);
+            });
+            listDiv.appendChild(itemsUl);
+
+            const addItemBtn = document.createElement('button');
+            addItemBtn.textContent = 'Add Item';
+            addItemBtn.addEventListener('click', () => {
+                const title = prompt('Item title?');
+                if (!title) return;
+                const date = prompt('Date (YYYY-MM-DD)');
+                CalendarManager.addItem(calendar.id, list.id, { title, date });
+                renderInputsView(calendar.id);
+            });
+            listDiv.appendChild(addItemBtn);
+        }
+
+        function renderEditForm() {
+            listDiv.innerHTML = '';
+            const nameInput = document.createElement('input');
+            nameInput.value = list.name;
+            listDiv.appendChild(nameInput);
+
+            const typeInput = document.createElement('input');
+            typeInput.value = list.type;
+            listDiv.appendChild(typeInput);
+
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = 'Save';
+            saveBtn.addEventListener('click', () => {
+                CalendarManager.updateList(calendar.id, list.id, {
+                    name: nameInput.value,
+                    type: typeInput.value
+                });
+                renderInputsView(calendar.id);
+            });
+            listDiv.appendChild(saveBtn);
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.addEventListener('click', renderListDisplay);
+            listDiv.appendChild(cancelBtn);
+        }
+
+        renderListDisplay();
         listsWrapper.appendChild(listDiv);
     });
 
